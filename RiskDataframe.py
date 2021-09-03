@@ -1,12 +1,18 @@
 # -*- coding: utf-8 -*-
 """
-Created on Fri Aug  6 22:49:01 2021
-
-@author: Nicolas Ponte
+Created on Fri Sep 3
 """
 
 import pandas as pd
 import numpy as np
+from datetime import datetime
+from sklearn.preprocessing import LabelEncoder
+from sklearn.model_selection import train_test_split
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.linear_model import LogisticRegression
+from sklearn.tree import _tree
+import numpy as np
+from datetime import timedelta
 import matplotlib.pyplot as plt
 from sklearn.preprocessing import MinMaxScaler
 from sklearn import preprocessing
@@ -68,24 +74,88 @@ class RiskDataframe(pd.DataFrame):
 #-----------------------------------------------------------------------------    
     def missing_not_at_random(self, input_vars=[] ):
         """
-
         Returns
         -------
         A print with the analysis.
-
         """
-        return "To be implemented."
-    
- 
-    def find_segment_split(self, canditate='', input_vars=[], target='' ):
-        """
+        for var in input_vars:
+          if var not in self.columns:
+            print(f"Variable named {var} not in the dataframe. Review the input variable names")
+            return
+        if input_vars==[]: columns = self.columns
+        else: columns = input_vars
+        missing_value_columns = [column for column in columns if self[column].isnull().values.any()]
+        print(f"Missing Not At Random Repport (MNAR) - {', '.join(missing_value_columns) if len(missing_value_columns)>0 else 'No'} variables seem Missing Not at Random, there for we recommend: \n \n Thin File Segment Variables (all others variables free of MNAR issue): {', '.join([column for column in columns if column not in missing_value_columns])} \n \n Full File Segment Variables: {', '.join(columns)}")
+        return
 
+# -----------------------------------------------------------------------------
+    def datetime_to_seconds(self, string_value):
+
+            """
+            Returns
+            -------
+            The functions to convert datetime into seconds
+            """
+
+            try:
+                obj = datetime.strptime(string_value, '%Y-%m-%d %H:%M:%S')
+            except:
+                obj = datetime.strptime(string_value, '%Y-%m-%d')
+            time_delta = datetime(1970, 1, 1)
+            seconds = int((obj - time_delta).total_seconds())
+
+            return seconds
+
+    def seconds_to_datetime(self, seconds):
+        """
         Returns
         -------
-        Example 1: ACCOUNT_NUMBER Not good for segmentation. Afer analysis, we did not find a good split using this variable.
-        Example 2: SEX Good for segmentation.  
-                Segment1: SEX in ('F') [Accuracy Full Model: 32% / Accuracy Segmented Model: 33%]
-                Segment2: SEX in ('M') [Accuracy Full Model: 63% / Accuracy Segmented Model: 68%]
-                
+        The functions to convert seconds into datetime
         """
-        return "To be implemented."
+        return (datetime.fromtimestamp(seconds)).strftime('%Y-%m-%d %H:%M:%S')
+
+
+    def handle_missing_values(self):
+        """
+        The functions handle the missing values with two cases
+        fill it with the mode if it's not Numeric ( Float )
+        fill it with the mean if it's with a type float
+        """
+        missing_value_columns = [column for column in self.columns if self[column].isnull().values.any()]
+        for column in missing_value_columns:
+            if self.dtypes[column] != np.dtype('float64'):
+                self[column].fillna(self[column].mode()[0], inplace=True)
+            else:
+                self[column].fillna(self[column].mean(), inplace=True)
+
+    def handle_datetime_values(self):
+        """
+        convert the date time to seconds
+        """
+
+        datetime_columns = [column for column in self.columns if self.dtypes[column] == np.dtype('<M8[ns]')]
+        for column in datetime_columns:
+            self[column] = self[column].apply(lambda x: self.datetime_to_seconds(self,str(x)))
+
+    def handle_categorical_values(self):
+
+        """
+        Handling the categorical values by applying the labelEncoder
+
+        """
+
+        categorical_columns = [column for column in self.columns if
+                               self.dtypes[column] not in [np.dtype('<M8[ns]'), np.dtype('float64'), np.dtype('int64')]]
+        ## Initializing dictionary to store all the encoders as values and their respective columns as keys
+        encode_decode = {}
+        ## Running a for loop which would create create encoder for each categorical column and store it in initialized dictionary
+        for column in categorical_columns:
+            # Initialize encoder
+            encoder = LabelEncoder()
+            # Train encoder
+            encoder.fit(myrdf[column])
+            ## Using encoder to encode categorical columns in dataset
+            self[column] = encoder.transform(self[column])
+            ## Store encoder in dictionary
+            encode_decode[column] = encoder
+        self.encoders = encode_decode
