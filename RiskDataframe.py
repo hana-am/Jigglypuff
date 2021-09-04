@@ -77,6 +77,8 @@ class RiskDataframe(pd.DataFrame):
         Returns
         -------
         A print with the analysis.
+
+        We can plot the anlyais of the heatmap
         """
         for var in input_vars:
           if var not in self.columns:
@@ -89,7 +91,7 @@ class RiskDataframe(pd.DataFrame):
         return
 
 # -----------------------------------------------------------------------------
-    def datetime_to_seconds(self, string_value):
+    def _datetime_to_seconds(self, string_value):
 
             """
             Returns
@@ -106,7 +108,7 @@ class RiskDataframe(pd.DataFrame):
 
             return seconds
 
-    def seconds_to_datetime(self, seconds):
+    def _seconds_to_datetime(self, seconds):
         """
         Returns
         -------
@@ -115,7 +117,7 @@ class RiskDataframe(pd.DataFrame):
         return (datetime.fromtimestamp(seconds)).strftime('%Y-%m-%d %H:%M:%S')
 
 
-    def handle_missing_values(self):
+    def _handle_missing_values(self):
         """
         The functions handle the missing values with two cases
         fill it with the mode if it's not Numeric ( Float )
@@ -128,7 +130,7 @@ class RiskDataframe(pd.DataFrame):
             else:
                 self[column].fillna(self[column].mean(), inplace=True)
 
-    def handle_datetime_values(self):
+    def _handle_datetime_values(self):
         """
         convert the date time to seconds
         """
@@ -137,7 +139,7 @@ class RiskDataframe(pd.DataFrame):
         for column in datetime_columns:
             self[column] = self[column].apply(lambda x: self.datetime_to_seconds(self,str(x)))
 
-    def handle_categorical_values(self):
+    def _handle_categorical_values(self):
 
         """
         Handling the categorical values by applying the labelEncoder
@@ -159,3 +161,12 @@ class RiskDataframe(pd.DataFrame):
             ## Store encoder in dictionary
             encode_decode[column] = encoder
         self.encoders = encode_decode
+
+    def clean_dataframe (self,string_value,seconds ):
+        self._datetime_to_seconds(string_value)
+        self._seconds_to_datetime(seconds)
+        self._handle_missing_values()
+        self._handle_datetime_values()
+        self._handle_categorical_values()
+        return self.data
+
