@@ -5,18 +5,27 @@ Created on Fri Sep 3
 
 import pandas as pd
 import numpy as np
-from datetime import datetime
-from sklearn.preprocessing import LabelEncoder
-from sklearn.model_selection import train_test_split
-from sklearn.tree import DecisionTreeClassifier
+from datetime import datetime, date
+import re
+from sklearn.model_selection import train_test_split, cross_val_score, GridSearchCV
 from sklearn.linear_model import LogisticRegression
-from sklearn.tree import _tree
-import numpy as np
-from datetime import timedelta
+from sklearn.metrics import accuracy_score
+from sklearn.tree import DecisionTreeClassifier
+from dataset import Dataset
 import matplotlib.pyplot as plt
+import math
+from sklearn.preprocessing import LabelEncoder
+from sklearn.tree import _tree
 from sklearn.preprocessing import MinMaxScaler
 from sklearn import preprocessing
+from copy import copy
+from sklearn.preprocessing import OneHotEncoder
 
+
+
+
+#from sklearn.linear_model import LogisticRegression
+#from sklearn.tree import DecisionTreeClassifier
 class RiskDataframe(pd.DataFrame):
     """
     The class is used to extend the properties of Dataframes to a prticular
@@ -31,6 +40,8 @@ class RiskDataframe(pd.DataFrame):
     #Initializing the inherited pd.DataFrame
     def __init__(self, *args, **kwargs):
         super().__init__(*args,**kwargs)
+        self.data = args[0]
+
     
     @property
     def _constructor(self):
@@ -90,83 +101,352 @@ class RiskDataframe(pd.DataFrame):
         print(f"Missing Not At Random Repport (MNAR) - {', '.join(missing_value_columns) if len(missing_value_columns)>0 else 'No'} variables seem Missing Not at Random, there for we recommend: \n \n Thin File Segment Variables (all others variables free of MNAR issue): {', '.join([column for column in columns if column not in missing_value_columns])} \n \n Full File Segment Variables: {', '.join(columns)}")
         return
 
-# -----------------------------------------------------------------------------
-    def _datetime_to_seconds(self, string_value):
+    # -----------------------------------------------------------------------------
+    # DATA CLEANING
+    # -----------------------------------------------------------------------------
 
-            """
-            Returns
-            -------
-            The functions to convert datetime into seconds
-            """
-
-            try:
-                obj = datetime.strptime(string_value, '%Y-%m-%d %H:%M:%S')
-            except:
-                obj = datetime.strptime(string_value, '%Y-%m-%d')
-            time_delta = datetime(1970, 1, 1)
-            seconds = int((obj - time_delta).total_seconds())
-
-            return seconds
-
-    def _seconds_to_datetime(self, seconds):
-        """
-        Returns
-        -------
-        The functions to convert seconds into datetime
-        """
-        return (datetime.fromtimestamp(seconds)).strftime('%Y-%m-%d %H:%M:%S')
-
-
-    def _handle_missing_values(self):
-        """
-        The functions handle the missing values with two cases
-        fill it with the mode if it's not Numeric ( Float )
-        fill it with the mean if it's with a type float
-        """
-        missing_value_columns = [column for column in self.columns if self[column].isnull().values.any()]
-        for column in missing_value_columns:
-            if self.dtypes[column] != np.dtype('float64'):
-                self[column].fillna(self[column].mode()[0], inplace=True)
-            else:
-                self[column].fillna(self[column].mean(), inplace=True)
-
-    def _handle_datetime_values(self):
-        """
-        convert the date time to seconds
-        """
-
-        datetime_columns = [column for column in self.columns if self.dtypes[column] == np.dtype('<M8[ns]')]
-        for column in datetime_columns:
-            self[column] = self[column].apply(lambda x: self.datetime_to_seconds(self,str(x)))
-
-    def _handle_categorical_values(self):
-
-        """
-        Handling the categorical values by applying the labelEncoder
-
-        """
-
-        categorical_columns = [column for column in self.columns if
-                               self.dtypes[column] not in [np.dtype('<M8[ns]'), np.dtype('float64'), np.dtype('int64')]]
-        ## Initializing dictionary to store all the encoders as values and their respective columns as keys
-        encode_decode = {}
-        ## Running a for loop which would create create encoder for each categorical column and store it in initialized dictionary
-        for column in categorical_columns:
-            # Initialize encoder
-            encoder = LabelEncoder()
-            # Train encoder
-            encoder.fit(myrdf[column])
-            ## Using encoder to encode categorical columns in dataset
-            self[column] = encoder.transform(self[column])
-            ## Store encoder in dictionary
-            encode_decode[column] = encoder
-        self.encoders = encode_decode
-
-    def clean_dataframe (self,string_value,seconds ):
-        self._datetime_to_seconds(string_value)
-        self._seconds_to_datetime(seconds)
-        self._handle_missing_values()
-        self._handle_datetime_values()
-        self._handle_categorical_values()
+    def start(self, piv, birth_date, target, down_payment, income_status, dates_todays):
+        self._pivot_unique(piv)
+        self._clean_target(target)
+        self._clean(birth_date)
+        self._down(down_payment)
+        self._income(income_status)
+        self._dayslapsed(dates_todays)
         return self.data
 
+    # Remove duplicates using the 'pivot' value established by the user
+    def _pivot_unique(self, piv):
+        self.data.drop_duplicates(subset=[piv], keep='last', inplace=True)
+        return self.data
+
+    # The idea of this analysis is to have a binary bucket
+    def _clean_target(self, target):
+        for i in range(len(self.data.columns)):
+            tar = str(self.data.columns[i])
+            if tar == target:
+                val = np.where(self.data[self.data.columns[i]] > 0, 1, self.data[self.data.columns[i]])
+                self.data[self.data.columns[i]] = val
+        return self.data
+
+    # Getting the agre from the birth date in the dataFrame and cleainig empty spaces
+    def _clean(self, birth_date):
+
+        data = Dataset.from_dataframe(self.data)
+        numerical_features = data.numerical_features
+        categorical_features = data.categorical_features
+
+        # clean numerical values
+        for i in range(len(self.data.columns)):
+            empty = self.data[self.data.columns[i]].isna().any()
+            if empty == True and self.data.columns[i] in numerical_features:
+                val = self.data[self.data.columns[i]].fillna(self.data[self.data.columns[i]].mean())
+                self.data[self.data.columns[i]] = val
+
+        # clean categorical values
+        # fill empty
+        for i in range(len(self.data.columns)):
+            empty = self.data[self.data.columns[i]].isna().any()
+            if empty == True and self.data.columns[i] in categorical_features:
+                val = self.data[self.data.columns[i]].fillna('UNKNOWN')
+                self.data[self.data.columns[i]] = val
+
+            # upper case
+        for i in range(len(self.data.columns)):
+            if self.data.columns[i] in categorical_features:
+                val = self.data[self.data.columns[i]].str.upper()
+                self.data[self.data.columns[i]] = val
+
+        # if birth date, return age
+        def age(born):
+            while True:
+                try:
+                    born = datetime.strptime(born, "%Y-%m-%d").date()
+                    today = date.today()
+                    return today.year - born.year - ((today.month, today.day) < (born.month, born.day))
+                except ValueError:
+                    return 'UNKNOWN'
+
+        for i in range(len(self.data.columns)):
+            dateb = str(self.data.columns[i])
+            if self.data.columns[i] in categorical_features and dateb == birth_date:
+                val = self.data[self.data.columns[i]].apply(age)
+                self.data[self.data.columns[i]] = val
+
+        return self.data
+
+    # The down Payment has to mean something in order to be useful in the Model. We get the % in each value. Also we separate between individuals and corporate
+
+    def _down(self, down_payment):
+        def pay(payment):
+            y = re.findall('\d+', payment)
+            if len(y) > 0:
+                result = int(y[0]) / 100
+            else:
+                result = 0
+            return result
+
+        def ty(types):
+            if 'EMPLOYED' in types:
+                return 'EMPLOYED'
+            else:
+                return 'CORPORATE'
+
+        self.data["DOWN_PAYMENT"] = None
+        self.data["TYPE"] = None
+        val = self.data[down_payment].apply(pay)
+        self.data["DOWN_PAYMENT"] = val
+
+        val = self.data[down_payment].apply(ty)
+        self.data["TYPE"] = val
+        self.data.drop(columns=[down_payment], inplace=True)
+
+        return self.data
+
+    # There are too many jobs, we can isolate between those who get some income and unemployed guys
+    def _income(self, income_status):
+        def income(incomes):
+            if 'UNEMPLOYED' in incomes:
+                return 'UNEMPLOYED'
+            else:
+                return 'ACTIVE'
+
+        val = self.data[income_status].apply(income)
+        self.data[income_status] = val
+
+    # Dates are not useful for the model, we need numerical values.
+
+    def _dayslapsed(self, dates_todays):
+        def daily(dai):
+            change = datetime.strptime(dai, "%Y-%m-%d").date()
+            today = date.today()
+            delta = today - change
+            return delta.days
+
+        for i in range(len(dates_todays)):
+            self.data[dates_todays[i] + '_DAYS_LAPSED'] = None
+            val = self.data[dates_todays[i]].apply(daily)
+            self.data[dates_todays[i] + '_DAYS_LAPSED'] = val
+            self.data.drop(columns=[dates_todays[i]], inplace=True)
+
+    # -----------------------------------------------------------------------------
+    # DATA ANALYSIS
+    # -----------------------------------------------------------------------------
+    # -----------------------------------------------------------------------------
+    # CATEGORICAL VARIABLES ANALYSIS
+    # -----------------------------------------------------------------------------
+
+    def set_train_cat(self, target_value, seg_data):
+
+        df_random_sample, _ = train_test_split(self.data, test_size=0.90)
+
+        def get_specific_columns(df_random_sample, data_types, to_ignore=list(), ignore_target=False):
+            columns = df_random_sample.select_dtypes(include=data_types).columns
+            if ignore_target:
+                columns = filter(lambda x: x not in to_ignore, list(columns))
+            return list(columns)
+
+        all_numeric_variables = get_specific_columns(df_random_sample, ["float64", "int64"], [target_value],
+                                                     ignore_target=True)
+
+        splitter = train_test_split
+        df_train, df_test = splitter(df_random_sample, test_size=0.2, random_state=42)
+
+        X_train = df_train[all_numeric_variables]
+        y_train = df_train[target_value]
+
+        X_test = df_test[all_numeric_variables]
+        y_test = df_test[target_value]
+
+        method = LogisticRegression(random_state=0)
+        fitted_full_model = method.fit(X_train, y_train)
+        y_pred = fitted_full_model.predict(X_test)
+
+        # Result accuracy all model
+        full_model = accuracy_score(y_test, y_pred)
+        result_full_model_etal = [
+            "The total accuracy using all variable and Logistic regression is: " + str(full_model)]
+
+        conclusion_model = []
+
+        for seg in range(len(seg_data)):
+
+            max_value_seg = self.data[seg_data[seg]].value_counts().idxmax()
+
+            # set dataframes of train and test
+
+            df_train_seg1 = df_train[df_random_sample[seg_data[seg]] == max_value_seg]
+            df_train_seg2 = df_train[df_random_sample[seg_data[seg]] != max_value_seg]
+            df_test_seg1 = df_test[df_random_sample[seg_data[seg]] == max_value_seg]
+            df_test_seg2 = df_test[df_random_sample[seg_data[seg]] != max_value_seg]
+
+            # getting results seg 1 vs seg 1
+
+            X_train_seg1 = df_train_seg1[all_numeric_variables]
+            y_train_seg1 = df_train_seg1[target_value]
+            X_test_seg1 = df_test_seg1[all_numeric_variables]
+            y_test_seg1 = df_test_seg1[target_value]
+
+            fitted_model_seg1 = method.fit(X_train_seg1, y_train_seg1)
+
+            def GINI(y_test, y_pred_probadbility):
+                from sklearn.metrics import roc_curve, auc
+                fpr, tpr, thresholds = roc_curve(y_test, y_pred_probadbility)
+                roc_auc = auc(fpr, tpr)
+                GINI = (2 * roc_auc) - 1
+                return (GINI)
+
+            y_pred_seg1_proba = fitted_model_seg1.predict_proba(X_test_seg1)[:, 1]
+            y_pred_seg1_fullmodel_proba = fitted_full_model.predict_proba(X_test_seg1)[:, 1]
+
+            result_full_model_etal.append("Using: " + seg_data[seg] + " GINI Full Model Seg1: " + str(
+                GINI(y_test_seg1, y_pred_seg1_proba) * 100) + "%")
+            result_full_model_etal.append("Using: " + seg_data[seg] + " GINI Segmented Model Seg1: " + str(
+                GINI(y_test_seg1, y_pred_seg1_fullmodel_proba) * 100) + "%")
+
+            # getting results seg 2 vs seg 2
+
+            X_train_seg2 = df_train_seg2[all_numeric_variables]
+            y_train_seg2 = df_train_seg2[target_value]
+            X_test_seg2 = df_test_seg2[all_numeric_variables]
+            y_test_seg2 = df_test_seg2[target_value]
+            fitted_model_seg2 = method.fit(X_train_seg2, y_train_seg2)
+            y_pred_seg2 = fitted_model_seg2.predict(X_test_seg2)
+            y_pred_seg2_fullmodel = fitted_full_model.predict(X_test_seg2)
+
+            y_pred_seg2_proba = fitted_model_seg1.predict_proba(X_test_seg2)[:, 1]
+            y_pred_seg2_fullmodel_proba = fitted_full_model.predict_proba(X_test_seg2)[:, 1]
+
+            result_full_model_etal.append("Using: " + seg_data[seg] + " GINI Full Model Seg2: " + str(
+                GINI(y_test_seg2, y_pred_seg2_proba) * 100) + "%")
+            result_full_model_etal.append("Using: " + seg_data[seg] + " GINI Segmented Model Seg2:" + str(
+                GINI(y_test_seg2, y_pred_seg2_fullmodel_proba) * 100) + "%")
+
+            if GINI(y_test_seg1, y_pred_seg1_proba) * 100 < 20 or GINI(y_test_seg2, y_pred_seg2_proba) * 100 < 20:
+
+                conclusion_model.append("After analysis, we did not find a good split using: " + seg_data[seg])
+            else:
+                conclusion_model.append(
+                    "After analysis, we find a good split using: " + seg_data[seg] + " set at: " + str(max_value_seg))
+
+        return result_full_model_etal, conclusion_model
+
+# -----------------------------------------------------------------------------
+# ENCODING
+# -----------------------------------------------------------------------------
+
+    def encod(self, seg_data_cat):
+        data = Dataset.from_dataframe(self.data)
+        for seg in range(len(seg_data_cat)):
+            data.onehot_encode(seg_data_cat[seg])
+            data.drop_columns(seg_data_cat[seg])
+
+        self.data = data.features
+
+        return self.data
+
+# -----------------------------------------------------------------------------
+# NUMERICAL VARIABLES ANALYSIS
+# -----------------------------------------------------------------------------
+
+    def set_train_num(self, seg_data_cat, target_value, seg_data_num):
+
+        # Lets get rid of Unknown values so that we can have means in each column
+        for dro in range(len(seg_data_num)):
+            self.data.drop(self.data.index[self.data[seg_data_num[dro]] == 'UNKNOWN'], inplace=True)
+
+        def get_specific_columns(df_random_sample, data_types, to_ignore=list(), ignore_target=False):
+            columns = df_random_sample.select_dtypes(include=data_types).columns
+            if ignore_target:
+                columns = filter(lambda x: x not in to_ignore, list(columns))
+            return list(columns)
+
+        df_random_sample, _ = train_test_split(self.data, test_size=0.90)
+        all_numeric_variables = get_specific_columns(df_random_sample, ["float64", "int64"], [target_value],
+                                                     ignore_target=True)
+
+        splitter = train_test_split
+        df_train, df_test = splitter(df_random_sample, test_size=0.2, random_state=42)
+
+        result_full_model_etal = []
+
+        X_train = df_train[all_numeric_variables]
+        y_train = df_train[target_value]
+
+        X_test = df_test[all_numeric_variables]
+        y_test = df_test[target_value]
+
+        method = LogisticRegression(random_state=0)
+        fitted_full_model = method.fit(X_train, y_train)
+        y_pred = fitted_full_model.predict(X_test)
+
+        full_model = accuracy_score(y_test, y_pred)
+        result_full_model_etal = [
+            "The total accuracy using all variable and Logistic regression is: " + str(full_model)]
+
+        conclusion_model = []
+
+        for seg in range(len(seg_data_num)):
+
+            mean_value_seg = self.data[seg_data_num[seg]].mean()
+
+            # set dataframes of train and test
+
+            df_train_seg1 = df_train[df_random_sample[seg_data_num[seg]] >= mean_value_seg]
+            df_train_seg2 = df_train[df_random_sample[seg_data_num[seg]] < mean_value_seg]
+            df_test_seg1 = df_test[df_random_sample[seg_data_num[seg]] >= mean_value_seg]
+            df_test_seg2 = df_test[df_random_sample[seg_data_num[seg]] < mean_value_seg]
+
+            # getting results seg 1 vs seg 1
+
+            X_train_seg1 = df_train_seg1[all_numeric_variables]
+            y_train_seg1 = df_train_seg1[target_value]
+            X_test_seg1 = df_test_seg1[all_numeric_variables]
+            y_test_seg1 = df_test_seg1[target_value]
+
+            fitted_model_seg1 = method.fit(X_train_seg1, y_train_seg1)
+
+            def GINI(y_test, y_pred_probadbility):
+                from sklearn.metrics import roc_curve, auc
+                fpr, tpr, thresholds = roc_curve(y_test, y_pred_probadbility)
+                roc_auc = auc(fpr, tpr)
+                GINI = (2 * roc_auc) - 1
+                return (GINI)
+
+            y_pred_seg1_proba = fitted_model_seg1.predict_proba(X_test_seg1)[:, 1]
+            y_pred_seg1_fullmodel_proba = fitted_full_model.predict_proba(X_test_seg1)[:, 1]
+
+            result_full_model_etal.append("Using: " + seg_data_num[seg] + " GINI Full Model Seg1: " + str(
+                GINI(y_test_seg1, y_pred_seg1_proba) * 100) + "%")
+            result_full_model_etal.append("Using: " + seg_data_num[seg] + " GINI Segmented Model Seg1: " + str(
+                GINI(y_test_seg1, y_pred_seg1_fullmodel_proba) * 100) + "%")
+
+            # getting results seg 2 vs seg 2
+
+            X_train_seg2 = df_train_seg2[all_numeric_variables]
+            y_train_seg2 = df_train_seg2[target_value]
+            X_test_seg2 = df_test_seg2[all_numeric_variables]
+            y_test_seg2 = df_test_seg2[target_value]
+            fitted_model_seg2 = method.fit(X_train_seg2, y_train_seg2)
+            y_pred_seg2 = fitted_model_seg2.predict(X_test_seg2)
+            y_pred_seg2_fullmodel = fitted_full_model.predict(X_test_seg2)
+
+            y_pred_seg2_proba = fitted_model_seg1.predict_proba(X_test_seg2)[:, 1]
+            y_pred_seg2_fullmodel_proba = fitted_full_model.predict_proba(X_test_seg2)[:, 1]
+
+            result_full_model_etal.append("Using: " + seg_data_num[seg] + " GINI Full Model Seg2: " + str(
+                GINI(y_test_seg2, y_pred_seg2_proba) * 100) + "%")
+            result_full_model_etal.append("Using: " + seg_data_num[seg] + " GINI Segmented Model Seg2: " + str(
+                GINI(y_test_seg2, y_pred_seg2_fullmodel_proba) * 100) + "%")
+
+            if GINI(y_test_seg1, y_pred_seg1_proba) * 100 < 20 or GINI(y_test_seg2, y_pred_seg2_proba) * 100 < 20:
+                conclusion_model.append("After analysis, we did not find a good split using: " + seg_data_num[seg])
+            else:
+                conclusion_model.append(
+                    "After analysis, we find a good split using: " + seg_data_num[seg] + " set at: " + str(
+                        mean_value_seg))
+
+        return result_full_model_etal, conclusion_model
+
+    def plot_risk (self,variable):
+        plt.hist(self.data[variable], color='g', label='Ideal')
+        print(self.data.describe())
