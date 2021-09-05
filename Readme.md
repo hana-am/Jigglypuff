@@ -25,3 +25,18 @@ Customer segmentation analysis can lead to several tangible improvements in cred
 
 
 
+
+
+## Please cite the package in publications!
+By using `RiskEvaluation` you agree to the following rules:
+
+You must place the following URL in a footnote to help others find `RiskEvaluation`: ~~https://CRAN.R-project.org/package=RiskPortfolios.~~
+
+~~You assume all risk for the use of `RiskEvaluation`.
+Ardia, D., Boudt, K., Gagnon-Fleury, J.-P. (2017a).
+RiskPortfolios: Computation of risk-based portfolios in R.
+Journal of Open Source Software, 10(2), 1.
+https://doi.org/10.21105/joss.00171~~
+
+
+
