@@ -1,18 +1,18 @@
-# **Name Project**
+# **Jigglypuff**
 
 ## **About**
 
-`RiskEvaluation`, is a Python package for creating a Risk Based Analysis Model. This package is based on customer segmentation, which involves categorizing the portfolio by industry, location, revenue, account size, and number of employees and many other variables to reveal where risk and opportunity live within the portfolio. Those patterns can then provide key measurable data points for more predictive credit risk management. Taking a portfolio approach to risk management gives credit professionals a better fix on the accounts, in order to develop strategies for better serving segments that present the best opportunities. Not only that, you can work to maximize performance in all customer segments, even seemingly risky segments.
+`Jigglypuff`, is a Python package for creating a Risk Based Analysis Model. This package is based on customer segmentation, which involves categorizing the portfolio by industry, location, revenue, account size, and number of employees and many other variables to reveal where risk and opportunity live within the portfolio. Those patterns can then provide key measurable data points for more predictive credit risk management. Taking a portfolio approach to risk management gives credit professionals a better fix on the accounts, in order to develop strategies for better serving segments that present the best opportunities. Not only that, you can work to maximize performance in all customer segments, even seemingly risky segments.
 Customer segmentation analysis can lead to several tangible improvements in credit risk management: stronger credit policies, and improved internal communication and cooperation across teams. 
 
 ## **How To**
-`RiskEvaluation` package its comprehended by a Class called `RiskDataframe` The class is used to extend the properties of Dataframes to a prticular type of Dataframes in the Risk Indutry. 
+`Jigglypuff` package its comprehended by a Class called `RiskDataframe` The class is used to extend the properties of Dataframes to a particular type of Dataframes in the Risk Indutry. 
 
 It provides the end user with both general and specific cleaning functions, though they never reference a specific VARIABLE NAME.
     
 It facilitates the End User to perform some Date Feature Engineering, Scaling, Encoding, etc. to avoid code repetition.
 
-
+This package works setting as a target the column where are recorded the missing payments, this is our target and the prediction of the Logistic Regression model. 
 
 ## Data Handling
 
@@ -48,7 +48,15 @@ Once the user has indicated in Jupyter notebook which features are pivot_value, 
 - `_income` function will simplify professions into unemployed or active in order to make professions an easier feature for segmentation.
 - `_dayslapsed` function will convert days into numerical values which are more useful for the model.
 
+## Data Analysis
 
+### Categorical Variable Analysis
+
+`RiskDataframe` class will automatically segment the categorical values in order to indicate if the split generates a better accuracy than the whole dataset. For categorical values it has been indicated a train of 10% and a test for the 90% of the data frame.
+
+`seg_data_cat` is a list of columns which shall be specified by the user, in order to indicate the class which columns contains categorical values.
+
+The method `file.set_train_cat(target_value,seg_data_cat)` will 
 
 
 
