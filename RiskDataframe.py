@@ -13,6 +13,7 @@ from sklearn.metrics import accuracy_score
 from sklearn.tree import DecisionTreeClassifier
 from dataset import Dataset
 import matplotlib.pyplot as plt
+import seaborn as sns
 import sweetviz
 import math
 from sklearn.preprocessing import LabelEncoder
@@ -83,15 +84,29 @@ class RiskDataframe(pd.DataFrame):
 
 #-----------------------------------------------------------------------------
                         # RISK BASED APPROACH
-#-----------------------------------------------------------------------------    
+#-----------------------------------------------------------------------------
+
+    def heatPlot(self):
+        mycor_1 = self.corr()
+        plt.figure(figsize=(10, 10))
+        cmap = sns.diverging_palette(220, 10, as_cmap=True)
+
+        sns.heatmap(mycor_1, xticklabels=mycor_1.columns.values,
+                    yticklabels=mycor_1.columns.values, cmap=cmap, vmax=1, vmin=-1, center=0, square=True,
+                    linewidths=.5, cbar_kws={"shrink": .82})
+
+        plt.title('Heatmap of Correlation Matrix Personal')
+
     def missing_not_at_random(self, input_vars=[] ):
         """
         Returns
         -------
         A print with the analysis.
 
-        We can plot the anlyais of the heatmap
+        A Graph/Plot the columns heatmap
         """
+
+
         for var in input_vars:
           if var not in self.columns:
             print(f"Variable named {var} not in the dataframe. Review the input variable names")
