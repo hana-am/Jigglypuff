@@ -75,20 +75,82 @@ For both categorical and numerical values, the effectiveness is measured by GINI
 
 ## Example
 
+### 1. Using Autoloans.csv dataset
+#### Library Installation
+	!pip install --upgrade git+http://github.com/renero/dataset
+	!pip install skrebate
+	!pip install gplearn
 
+	from copy import copy
+	from dataset import Dataset
+	from datetime import datetime, date
+	from sklearn.model_selection import train_test_split
+	from sklearn.model_selection import train_test_split, cross_val_score, GridSearchCV
+	from sklearn.metrics import accuracy_score
+	from sklearn.preprocessing import OneHotEncoder
+
+	import re
+	import math
+	import datetime
+	import matplotlib.pyplot as plt
+	import numpy as np
+	import pandas as pd
+
+	from sklearn.linear_model import LogisticRegression
+	from sklearn.tree import DecisionTreeClassifier
+
+#### Name the dataset
+
+	file = RiskDataframe('AUTO_LOANS_DATA.csv')
+
+#### Variable indication
+
+The user has to set the pivot column (Loand contract number), the target value (Unpaid monthly installments), down payment, income status or profession of the lender, birth date and the rest of the dates on the dataset.
+
+	pivot_value = 'ACCOUNT_NUMBER'
+	target_value = 'BUCKET'
+	down_payment = 'PROGRAM_NAME'
+	income_status = 'PROFESSION'
+	birth_date = 'BIRTH_DATE'
+	dates_todays = ['REPORTING_DATE','LOAN_OPEN_DATE','EXPECTED_CLOSE_DATE','CUSTOMER_OPEN_DATE']
+
+	file.start(pivot_value,birth_date,target_value, down_payment,income_status,dates_todays)
+
+
+#### Categorical varibles indication
+The user has to indicate which are the categorical variables from the dataset.
+
+	seg_data_cat =['SEX','PROFESSION','CAR_TYPE','TYPE'] 
+
+#### Run the model for categorical values
+
+	file.set_train_cat(target_value,seg_data_cat)
+
+#### Numerical variables indication
+The user has to indicate which are the numerical variables from the dataset.
+	
+	seg_data_num = ['ORIGINAL_BOOKED_AMOUNT','OUTSTANDING','BIRTH_DATE','DOWN_PAYMENT','REPORTING_DATE_DAYS_LAPSED','LOAN_OPEN_DATE_DAYS_LAPSED','EXPECTED_CLOSE_DATE_DAYS_LAPSED','CUSTOMER_OPEN_DATE_DAYS_LAPSED']
+
+#### Run One Hot Encoder
+
+One Hot Encoder will be use to transform the categorical variables.
+
+	file.encod(seg_data_cat)
+
+#### Run the model for numerical values
+
+	file.set_train_num(seg_data_cat,target_value,seg_data_num)
 
 
 
 ## Please cite the package in publications!
 By using `Jigglypuff` you agree to the following rules:
 
-You must place the following URL in a footnote to help others find `Jigglypuff`: ~~https://CRAN.R-project.org/package=RiskPortfolios.~~
+You must place the following URL in a footnote to help others find `Jigglypuff`: https://github.com/hana-am/GroupF_RBASegmentation#data-handling
 
-~~You assume all risk for the use of `Jigglypuff`.
-Ardia, D., Boudt, K., Gagnon-Fleury, J.-P. (2017a).
-RiskPortfolios: Computation of risk-based portfolios in R.
-Journal of Open Source Software, 10(2), 1.
-https://doi.org/10.21105/joss.00171~~
+You assume all risk for the use of `Jigglypuff`.
+
+Alexander, J., Almashari, H., Galeano, A., Godinez, F., Hernández, T. (2021a).
 
 
 
