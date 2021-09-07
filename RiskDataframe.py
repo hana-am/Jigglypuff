@@ -13,6 +13,7 @@ from sklearn.metrics import accuracy_score
 from sklearn.tree import DecisionTreeClassifier
 from dataset import Dataset
 import matplotlib.pyplot as plt
+import sweetviz
 import math
 from sklearn.preprocessing import LabelEncoder
 from sklearn.tree import _tree
