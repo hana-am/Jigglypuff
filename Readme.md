@@ -56,63 +56,22 @@ Once the user has indicated in Jupyter notebook which features are pivot_value, 
 
 `seg_data_cat` is a list of columns which shall be specified by the user, in order to indicate the class which columns contains categorical values.
 
-The method `file.set_train_cat(target_value,seg_data_cat)` will 
+The method `set_train_cat(target_value,seg_data_cat)` will measure the effectiveness of splitting the categorical values of the data set.
 
 
+### Encoding
 
+Prior to execute the numerical variable analysis, it has to be converted the categorical values to numerical values. In order to make this, `encod` function will run one hot encoder.
 
+### Numerical Variable Analysis
 
+`RiskDataframe` class will automatically segment the numerical values in order to indicate if the split generates a better accuracy than the whole dataset. For cnumerical values it has been indicated a train of 10% and a test for the 90% of the data frame.
 
+`seg_data_num` is a list of columns which shall be specified by the user, in order to indicate the class which columns contains numerical values.
 
+The method `set_train_num(target_value,seg_data_num)` will measure the effectiveness of splitting the cnumerical values of the data set.
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-which perform the following actions:
-
-1. Data Cleaning.
-1. Duplicate removal, using a feature set by the user as pivot value.
-1. Set our target as a binary variable.
-1. Creating new features in order to obtain a better insight from the dataset such as:
-	- Age
-	- Days lapsed
-	- Percentage of down payment
-	- Income
-1. Create a segmentation for categorical variables.
-1. Create a segmentation for numerical variables.
-1. Compare the accuracy of a logistic regression model with a full dataset vs. the segmented dataset.
-1. Report generation in order to indicate which features are better to analyze with the segmented dataset or with the whole dataset.
-
+For both categorical and numerical values, the effectiveness is measured by GINI score.
 
 ## Example
 
@@ -121,11 +80,11 @@ which perform the following actions:
 
 
 ## Please cite the package in publications!
-By using `RiskEvaluation` you agree to the following rules:
+By using `Jigglypuff` you agree to the following rules:
 
-You must place the following URL in a footnote to help others find `RiskEvaluation`: ~~https://CRAN.R-project.org/package=RiskPortfolios.~~
+You must place the following URL in a footnote to help others find `Jigglypuff`: ~~https://CRAN.R-project.org/package=RiskPortfolios.~~
 
-~~You assume all risk for the use of `RiskEvaluation`.
+~~You assume all risk for the use of `Jigglypuff`.
 Ardia, D., Boudt, K., Gagnon-Fleury, J.-P. (2017a).
 RiskPortfolios: Computation of risk-based portfolios in R.
 Journal of Open Source Software, 10(2), 1.
