@@ -169,6 +169,48 @@ One Hot Encoder will be use to transform the categorical variables.
 
 The output of this method will indicate the GINI score for the full model and the segmented model, for numerical variables, and will be indicated below whether the split model is better or worse than the full model.
 
+	(['The total accuracy using all variable and Logistic regression is: 0.8881829733163914',
+  	'Using: ORIGINAL_BOOKED_AMOUNT GINI Full Model Seg1: 35.66609830232039%',
+  	'Using: ORIGINAL_BOOKED_AMOUNT GINI Segmented Model Seg1: 35.66609830232039%',
+  	'Using: ORIGINAL_BOOKED_AMOUNT GINI Full Model Seg2: 45.264030310206024%',
+  	'Using: ORIGINAL_BOOKED_AMOUNT GINI Segmented Model Seg2: 45.264030310206024%',
+  	'Using: OUTSTANDING GINI Full Model Seg1: 47.80138859667578%',
+  	'Using: OUTSTANDING GINI Segmented Model Seg1: 47.80138859667578%',
+  	'Using: OUTSTANDING GINI Full Model Seg2: 33.6887534907337%',
+  	'Using: OUTSTANDING GINI Segmented Model Seg2: 33.6887534907337%',
+  	'Using: BIRTH_DATE GINI Full Model Seg1: 39.5159865748101%',
+  	'Using: BIRTH_DATE GINI Segmented Model Seg1: 39.5159865748101%',
+  	'Using: BIRTH_DATE GINI Full Model Seg2: 34.40599069014372%',
+  	'Using: BIRTH_DATE GINI Segmented Model Seg2: 34.40599069014372%',
+  	'Using: DOWN_PAYMENT GINI Full Model Seg1: 34.9462365591398%',
+  	'Using: DOWN_PAYMENT GINI Segmented Model Seg1: 34.9462365591398%',
+  	'Using: DOWN_PAYMENT GINI Full Model Seg2: 36.48063200815494%',
+  	'Using: DOWN_PAYMENT GINI Segmented Model Seg2: 36.48063200815494%',
+  	'Using: REPORTING_DATE_DAYS_LAPSED GINI Full Model Seg1: 5.439161966156325%',
+  	'Using: REPORTING_DATE_DAYS_LAPSED GINI Segmented Model Seg1: 5.439161966156325%',
+  	'Using: REPORTING_DATE_DAYS_LAPSED GINI Full Model Seg2: 32.53278887081705%',
+  	'Using: REPORTING_DATE_DAYS_LAPSED GINI Segmented Model Seg2: 32.53278887081705%',
+  	'Using: LOAN_OPEN_DATE_DAYS_LAPSED GINI Full Model Seg1: 28.086180124223592%',
+  	'Using: LOAN_OPEN_DATE_DAYS_LAPSED GINI Segmented Model Seg1: 28.086180124223592%',
+  	'Using: LOAN_OPEN_DATE_DAYS_LAPSED GINI Full Model Seg2: 37.21047331319234%',
+  	'Using: LOAN_OPEN_DATE_DAYS_LAPSED GINI Segmented Model Seg2: 37.21047331319234%',
+  	'Using: EXPECTED_CLOSE_DATE_DAYS_LAPSED GINI Full Model Seg1: 1.2393767705382253%',
+  	'Using: EXPECTED_CLOSE_DATE_DAYS_LAPSED GINI Segmented Model Seg1: 1.2393767705382253%',
+  	'Using: EXPECTED_CLOSE_DATE_DAYS_LAPSED GINI Full Model Seg2: 26.236351958895334%',
+  	'Using: EXPECTED_CLOSE_DATE_DAYS_LAPSED GINI Segmented Model Seg2: 26.236351958895334%',
+  	'Using: CUSTOMER_OPEN_DATE_DAYS_LAPSED GINI Full Model Seg1: -2.7727046322430726%',
+  	'Using: CUSTOMER_OPEN_DATE_DAYS_LAPSED GINI Segmented Model Seg1: -2.7727046322430726%',
+  	'Using: CUSTOMER_OPEN_DATE_DAYS_LAPSED GINI Full Model Seg2: 38.69792852264968%',
+  	'Using: CUSTOMER_OPEN_DATE_DAYS_LAPSED GINI Segmented Model Seg2: 38.69792852264968%'],
+ 	['After analysis, we find a good split using: ORIGINAL_BOOKED_AMOUNT set at: 92207.14078562526',
+  	'After analysis, we find a good split using: OUTSTANDING set at: 33228.256089422415',
+  	'After analysis, we find a good split using: BIRTH_DATE set at: 43.66400467967141',
+  	'After analysis, we find a good split using: DOWN_PAYMENT set at: 0.40322744728997456',
+  	'After analysis, we did not find a good split using: REPORTING_DATE_DAYS_LAPSED',
+  	'After analysis, we find a good split using: LOAN_OPEN_DATE_DAYS_LAPSED set at: 2159.21330654391',
+  	'After analysis, we did not find a good split using: EXPECTED_CLOSE_DATE_DAYS_LAPSED',
+  	'After analysis, we did not find a good split using: CUSTOMER_OPEN_DATE_DAYS_LAPSED'])
+
 ## Please cite the package in publications!
 By using `Jigglypuff` you agree to the following rules:
 
