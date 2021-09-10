@@ -14,6 +14,8 @@ It facilitates the End User to perform some Date Feature Engineering, Scaling, E
 
 This package works setting as a target the column where are recorded the missing payments, this is our target and the prediction of the Logistic Regression model. 
 
+`Jigglypuff` can be pip installed, running the following command `pip install Jigglypuff`  
+
 ## Data Handling
 
 `SetAttributes` function will update the type of the variable submitted for change. It will veify first that the key is present in the desired dataframe.
@@ -77,23 +79,9 @@ For both categorical and numerical values, the effectiveness is measured by GINI
 
 ### 1. Using Autoloans.csv dataset
 #### Library Installation
-	!pip install --upgrade git+http://github.com/renero/dataset
-	!pip install skrebate
-	!pip install gplearn
+	!pip install Jigglypuff==0.2
+	from Jigglypuff.RiskDataframe import RiskDataframe as rdf
 
-	from copy import copy
-	from dataset import Dataset
-	from datetime import datetime, date
-	from sklearn.model_selection import train_test_split
-	from sklearn.model_selection import train_test_split, cross_val_score, GridSearchCV
-	from sklearn.metrics import accuracy_score
-	from sklearn.preprocessing import OneHotEncoder
-
-	import re
-	import math
-	import datetime
-	import matplotlib.pyplot as plt
-	import numpy as np
 	import pandas as pd
 
 	from sklearn.linear_model import LogisticRegression
@@ -101,7 +89,12 @@ For both categorical and numerical values, the effectiveness is measured by GINI
 
 #### Name the dataset
 
-	file = RiskDataframe('AUTO_LOANS_DATA.csv')
+	dataframe = pd.read_csv("AUTO_LOANS_DATA.csv", sep=";")
+	myrdf = rdf.RiskDataframe(dataframe)
+
+#### Implement method .missing_not_at_random()
+
+	myrdf.missing_not_at_random(input_vars=[]) 
 
 #### Variable indication
 
@@ -114,7 +107,16 @@ The user has to set the pivot column (Loand contract number), the target value (
 	birth_date = 'BIRTH_DATE'
 	dates_todays = ['REPORTING_DATE','LOAN_OPEN_DATE','EXPECTED_CLOSE_DATE','CUSTOMER_OPEN_DATE']
 
-	file.start(pivot_value,birth_date,target_value, down_payment,income_status,dates_todays)
+	myrdf.start(pivot_value,birth_date,target_value, down_payment,income_status,dates_todays)
+
+#### Setting the data types
+
+In order to set the data types a dictionary has to be created indicating which are the categorical variables.
+
+	argument_dict = {'PROGRAM_NAME':'category','SEX':'category',
+                'PROFESSION':'category','CAR_TYPE':'category'}
+	myrdf.SetAttributes(argument_dict)
+	myrdf.dtypes
 
 
 #### Categorical varibles indication
@@ -124,7 +126,31 @@ The user has to indicate which are the categorical variables from the dataset.
 
 #### Run the model for categorical values
 
-	file.set_train_cat(target_value,seg_data_cat)
+	myrdf.set_train_cat(target_value,seg_data_cat)
+
+The output of this method will indicate the GINI score for the full model and the segmented model, for the categorical variables, and will be indicated below whether the split model is better or worse than the full model.
+
+	(['The total accuracy using all variable and Logistic regression is: 0.8686868686868687',
+  	'Using: SEX GINI Full Model Seg1: 30.303745053332285%',
+  	'Using: SEX GINI Segmented Model Seg1: 30.303745053332285%',
+  	'Using: SEX GINI Full Model Seg2: 19.219512195121947%',
+  	'Using: SEX GINI Segmented Model Seg2:19.219512195121947%',
+  	'Using: PROFESSION GINI Full Model Seg1: 26.49165350778253%',
+  	'Using: PROFESSION GINI Segmented Model Seg1: 26.49165350778253%',
+  	'Using: PROFESSION GINI Full Model Seg2: nan%',
+  	'Using: PROFESSION GINI Segmented Model Seg2:nan%',
+  	'Using: CAR_TYPE GINI Full Model Seg1: 47.844112769485925%',
+  	'Using: CAR_TYPE GINI Segmented Model Seg1: 47.844112769485925%',
+  	'Using: CAR_TYPE GINI Full Model Seg2: 22.12240785828228%',
+  	'Using: CAR_TYPE GINI Segmented Model Seg2:22.12240785828228%',
+  	'Using: TYPE GINI Full Model Seg1: 24.75394321766562%',
+  	'Using: TYPE GINI Segmented Model Seg1: 24.75394321766562%',
+  	'Using: TYPE GINI Full Model Seg2: 55.55555555555558%',
+  	'Using: TYPE GINI Segmented Model Seg2:55.55555555555558%'],
+ 	['After analysis, we did not find a good split using: SEX',
+ 	 'After analysis, we find a good split using: PROFESSION set at: ACTIVE',
+ 	 'After analysis, we find a good split using: CAR_TYPE set at: HYUNDAI',
+ 	 'After analysis, we find a good split using: TYPE set at: EMPLOYED'])
 
 #### Numerical variables indication
 The user has to indicate which are the numerical variables from the dataset.
@@ -135,13 +161,13 @@ The user has to indicate which are the numerical variables from the dataset.
 
 One Hot Encoder will be use to transform the categorical variables.
 
-	file.encod(seg_data_cat)
+	myrdf.encod(seg_data_cat)
 
 #### Run the model for numerical values
 
-	file.set_train_num(seg_data_cat,target_value,seg_data_num)
+	myrdf.set_train_num(seg_data_cat,target_value,seg_data_num)
 
-
+The output of this method will indicate the GINI score for the full model and the segmented model, for numerical variables, and will be indicated below whether the split model is better or worse than the full model.
 
 ## Please cite the package in publications!
 By using `Jigglypuff` you agree to the following rules:
