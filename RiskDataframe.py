@@ -87,6 +87,18 @@ class RiskDataframe(pd.DataFrame):
 #-----------------------------------------------------------------------------
 
     def heatPlot(self):
+        """
+         The function will creat a heatmap graph for the correlated of the attributes
+
+         Parameters
+         ----------
+         None
+
+         Returns
+         -------
+         None.
+
+         """
         mycor_1 = self.corr()
         plt.figure(figsize=(10, 10))
         cmap = sns.diverging_palette(220, 10, as_cmap=True)
@@ -99,14 +111,17 @@ class RiskDataframe(pd.DataFrame):
 
     def missing_not_at_random(self, input_vars=[] ):
         """
+        The function is for presenting the missing not at random analysis of the variables
+
+        Parameters
+        ----------
+        input_vars : Dataframe variables
+
         Returns
         -------
-        A print with the analysis.
+        The print of the analysis .
 
-        A Graph/Plot the columns heatmap
         """
-
-
         for var in input_vars:
           if var not in self.columns:
             print(f"Variable named {var} not in the dataframe. Review the input variable names")
@@ -117,11 +132,47 @@ class RiskDataframe(pd.DataFrame):
         print(f"Missing Not At Random Repport (MNAR) - {', '.join(missing_value_columns) if len(missing_value_columns)>0 else 'No'} variables seem Missing Not at Random, there for we recommend: \n \n Thin File Segment Variables (all others variables free of MNAR issue): {', '.join([column for column in columns if column not in missing_value_columns])} \n \n Full File Segment Variables: {', '.join(columns)}")
         return
 
+    def highly_correlated_variables(self, target, top_most=4):
+        """
+        The function is for presenting the correlated variables to the target
+
+        Parameters
+        ----------
+        Dataframe variables
+        target : The target variable in the data frame
+        Returns
+        -------
+        The print of the analysis .
+
+        """
+        missing_value_columns = [column for column in self.columns if self[column].isnull().values.any()]
+        correlated_columns = list(self.corr().sort_values(by = target)[target].index)
+        print(f"\n The highly correlated columns are {', '.join([column for column in correlated_columns if column not in missing_value_columns][:top_most])}")
+        return
+
+
     # -----------------------------------------------------------------------------
     # DATA CLEANING
     # -----------------------------------------------------------------------------
 
     def start(self, piv, birth_date, target, down_payment, income_status, dates_todays):
+        """
+        The function is for start preprocessing the variables, and it call other methods/functions
+
+        Parameters
+        ----------
+        piv:pivot value
+        birth_date: birth date
+        target:Target value
+        down_payment:down payment value
+        income_status: income status value
+        Dates_todays:a list of all the dates
+
+        Returns
+        -------
+        The cleaned and process dataset .
+
+        """
         self._pivot_unique(piv)
         self._clean_target(target)
         self._clean(birth_date)
@@ -130,13 +181,36 @@ class RiskDataframe(pd.DataFrame):
         self._dayslapsed(dates_todays)
         return self.data
 
-    # Remove duplicates using the 'pivot' value established by the user
     def _pivot_unique(self, piv):
+        """
+         The function is to remove  duplicates using the 'pivot' value established by the user
+
+         Parameters
+         ----------
+         piv:pivot value
+
+         Returns
+         -------
+         The dataframe.
+
+         """
         self.data.drop_duplicates(subset=[piv], keep='last', inplace=True)
         return self.data
 
-    # The idea of this analysis is to have a binary bucket
+
     def _clean_target(self, target):
+        """
+         The function is to to have a binary Target
+
+         Parameters
+         ----------
+         target:target value
+
+         Returns
+         -------
+         The dataframe.
+
+        """
         for i in range(len(self.data.columns)):
             tar = str(self.data.columns[i])
             if tar == target:
@@ -144,22 +218,35 @@ class RiskDataframe(pd.DataFrame):
                 self.data[self.data.columns[i]] = val
         return self.data
 
-    # Getting the agre from the birth date in the dataFrame and cleainig empty spaces
-    def _clean(self, birth_date):
 
+    def _clean(self, birth_date):
+        """
+         The function is for Getting the age from the birth date in the dataFrame and cleanig empty spaces
+            - clean numerical values
+            -  clean categorical values
+            -  fill empty
+
+         Parameters
+         ----------
+         birth_date :birth date  value
+
+         Returns
+         -------
+         The dataframe.
+
+        """
         data = Dataset.from_dataframe(self.data)
         numerical_features = data.numerical_features
         categorical_features = data.categorical_features
 
-        # clean numerical values
+
         for i in range(len(self.data.columns)):
             empty = self.data[self.data.columns[i]].isna().any()
             if empty == True and self.data.columns[i] in numerical_features:
                 val = self.data[self.data.columns[i]].fillna(self.data[self.data.columns[i]].mean())
                 self.data[self.data.columns[i]] = val
 
-        # clean categorical values
-        # fill empty
+
         for i in range(len(self.data.columns)):
             empty = self.data[self.data.columns[i]].isna().any()
             if empty == True and self.data.columns[i] in categorical_features:
@@ -190,9 +277,19 @@ class RiskDataframe(pd.DataFrame):
 
         return self.data
 
-    # The down Payment has to mean something in order to be useful in the Model. We get the % in each value. Also we separate between individuals and corporate
-
     def _down(self, down_payment):
+        """
+        The function to separate between individuals and corporate as the down Payment has to mean something in order to be useful in the Model. We get the % in each value.
+
+         Parameters
+         ----------
+         down_payment :down payment value
+
+         Returns
+         -------
+         The dataframe.
+
+        """
         def pay(payment):
             y = re.findall('\d+', payment)
             if len(y) > 0:
@@ -218,8 +315,19 @@ class RiskDataframe(pd.DataFrame):
 
         return self.data
 
-    # There are too many jobs, we can isolate between those who get some income and unemployed guys
     def _income(self, income_status):
+        """
+        There are too many jobs,so this function isolates between those who get some income and unemployed guys
+
+         Parameters
+         ----------
+         income_status :income status value
+
+         Returns
+         -------
+         The dataframe.
+
+        """
         def income(incomes):
             if 'UNEMPLOYED' in incomes:
                 return 'UNEMPLOYED'
@@ -229,9 +337,20 @@ class RiskDataframe(pd.DataFrame):
         val = self.data[income_status].apply(income)
         self.data[income_status] = val
 
-    # Dates are not useful for the model, we need numerical values.
 
     def _dayslapsed(self, dates_todays):
+        """
+     The function is transferring the Dates to numerical values.
+
+         Parameters
+         ----------
+         dates_todays :a list of dates variables
+
+         Returns
+         -------
+         The dataframe.
+
+        """
         def daily(dai):
             change = datetime.strptime(dai, "%Y-%m-%d").date()
             today = date.today()
@@ -252,7 +371,19 @@ class RiskDataframe(pd.DataFrame):
     # -----------------------------------------------------------------------------
 
     def set_train_cat(self, target_value, seg_data):
+        """
+        The function is segmenting the categorical variables
 
+         Parameters
+         ----------
+         target_value :target value
+         seg_data : categorical variables in the dataframe
+
+         Returns
+         -------
+         The dataframe.
+
+        """
         df_random_sample, _ = train_test_split(self.data, test_size=0.90)
 
         def get_specific_columns(df_random_sample, data_types, to_ignore=list(), ignore_target=False):
@@ -351,6 +482,18 @@ class RiskDataframe(pd.DataFrame):
 # -----------------------------------------------------------------------------
 
     def encod(self, seg_data_cat):
+        """
+        The function is encoding the categorical variables
+
+         Parameters
+         ----------
+         seg_data_cat : categorical variables in the dataframe
+
+         Returns
+         -------
+         The dataframe.
+
+        """
         data = Dataset.from_dataframe(self.data)
         for seg in range(len(seg_data_cat)):
             data.onehot_encode(seg_data_cat[seg])
@@ -365,7 +508,19 @@ class RiskDataframe(pd.DataFrame):
 # -----------------------------------------------------------------------------
 
     def set_train_num(self, seg_data_cat, target_value, seg_data_num):
+        """
+        The function is segmenting the numerical variables
 
+         Parameters
+         ----------
+         target_value :target value
+         seg_data_num : numerical variables in the dataframe
+
+         Returns
+         -------
+         The dataframe.
+
+        """
         # Lets get rid of Unknown values so that we can have means in each column
         for dro in range(len(seg_data_num)):
             self.data.drop(self.data.index[self.data[seg_data_num[dro]] == 'UNKNOWN'], inplace=True)
@@ -464,5 +619,17 @@ class RiskDataframe(pd.DataFrame):
         return result_full_model_etal, conclusion_model
 
     def plot_risk (self,variable):
+        """
+        The function is for ploting the dataframe variables
+
+         Parameters
+         ----------
+         variable :any variable in the dataframe
+
+         Returns
+         -------
+         The creating plots.
+
+        """
         plt.hist(self.data[variable], color='g', label='Ideal')
         print(self.data.describe())
