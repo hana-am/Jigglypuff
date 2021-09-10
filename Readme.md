@@ -83,10 +83,7 @@ For both categorical and numerical values, the effectiveness is measured by GINI
 	from Jigglypuff.RiskDataframe import RiskDataframe as rdf
 
 	import pandas as pd
-
-	from sklearn.linear_model import LogisticRegression
-	from sklearn.tree import DecisionTreeClassifier
-
+	
 #### Name the dataset
 
 	dataframe = pd.read_csv("AUTO_LOANS_DATA.csv", sep=";")
