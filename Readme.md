@@ -18,7 +18,7 @@ This package works setting as a target the column where are recorded the missing
 
 ## Data Handling
 
-`SetAttributes` function will update the type of the variable submitted for change. It will veify first that the key is present in the desired dataframe.
+`SetAttributes` function will update the type of the variable submitted for change. It will verify first that the key is present in the desired dataframe.
 
 If present, it will try to change the type to the desired format. If not possible, it will continue to the next element.         
 
@@ -42,11 +42,11 @@ None.
 
 Once the user has indicated in Jupyter notebook which features are pivot_value, target_value, down_payment, income_status, birth_date and dates today. The `start` function will proceed to clean the dataset in order to be suitable to prepare it for the logistic regression model.
 
-- `_pivot_unique` function will be used to remove duplicates based on the pivot value assigbned by the user.
+- `_pivot_unique` function will be used to remove duplicates based on the pivot value assigned by the user.
 - `_clean_target` function will convert the target values in a binary bucket, in order to reduce the complexity for the Logistic regression model.
 - `_clean`  function will clean the empty spaces with 'UNKNOWN'.  
 - `age` function will obtain the age from the birth date in the data frame, empty spaces will be filled with 'UNKNOWN'.
-- `_down` function will obtain the down payment from eac, additionally the data frame is separated between individuals and corporate.
+- `_down` function will obtain the down payment from each, additionally the data frame is separated between individuals and corporate.
 - `_income` function will simplify professions into unemployed or active in order to make professions an easier feature for segmentation.
 - `_dayslapsed` function will convert days into numerical values which are more useful for the model.
 
@@ -63,15 +63,15 @@ The method `set_train_cat(target_value,seg_data_cat)` will measure the effective
 
 ### Encoding
 
-Prior to execute the numerical variable analysis, it has to be converted the categorical values to numerical values. In order to make this, `encod` function will run one hot encoder.
+Prior to execute the numerical variable analysis, the categorical values have to be converted to numerical values. In order to make this, `encod` function will run one hot encoder.
 
 ### Numerical Variable Analysis
 
-`RiskDataframe` class will automatically segment the numerical values in order to indicate if the split generates a better accuracy than the whole dataset. For cnumerical values it has been indicated a train of 10% and a test for the 90% of the data frame.
+`RiskDataframe` class will automatically segment the numerical values in order to indicate if the split generates a better accuracy than the whole dataset. For numerical values it has been indicated a train of 10% and a test for the 90% of the data frame.
 
 `seg_data_num` is a list of columns which shall be specified by the user, in order to indicate the class which columns contains numerical values.
 
-The method `set_train_num(target_value,seg_data_num)` will measure the effectiveness of splitting the cnumerical values of the data set.
+The method `set_train_num(target_value,seg_data_num)` will measure the effectiveness of splitting the numerical values of the data set.
 
 For both categorical and numerical values, the effectiveness is measured by GINI score.
 
