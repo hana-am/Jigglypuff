@@ -14,7 +14,7 @@ It facilitates the End User to perform some Date Feature Engineering, Scaling, E
 
 This package works setting as a target the column where are recorded the missing payments, this is our target and the prediction of the Logistic Regression model. 
 
-`Jigglypuff` can be pip installed, running the following command `pip install Jigglypuff`  
+`Jigglypuff` can be pip installed, running the following command `pip install Jigglypuff==0.2`  
 
 ## Data Handling
 
@@ -77,13 +77,13 @@ For both categorical and numerical values, the effectiveness is measured by GINI
 
 ## Example
 
-### 1. Using Autoloans.csv dataset
+### Using Autoloans.csv dataset
 #### Library Installation
 	!pip install Jigglypuff==0.2
 	from Jigglypuff.RiskDataframe import RiskDataframe as rdf
 
 	import pandas as pd
-	
+		
 #### Name the dataset
 
 	dataframe = pd.read_csv("AUTO_LOANS_DATA.csv", sep=";")
